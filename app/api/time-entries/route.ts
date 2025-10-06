@@ -13,8 +13,11 @@ export async function GET() {
     }
 
     await connectDB();
-    const timeEntries = await TimeEntry.find({ ownerId: session.user.id })
-      .populate('activityTypeId')
+    // Admins podem ver todos os lançamentos.
+    const filter = session.user.role === 'admin' ? {} : { ownerId: session.user.id };
+
+    const timeEntries = await TimeEntry.find(filter)
+      .populate('activityTypeId') // Popula para obter o nome da atividade
       .sort({ date: -1 });
     
     return NextResponse.json(timeEntries);
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const timeEntry = await TimeEntry.create({
-      date: new Date(date),
+      date: new Date(`${date}T00:00:00`), // Trata a data como local, não UTC
       hours,
       description,
       activityTypeId,

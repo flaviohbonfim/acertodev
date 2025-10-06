@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const readline = require('readline');
-const User = require('../models/User');
+const User = require('../models/User').default;
 require('dotenv').config({ path: '.env.local' });
 
 const createAdmin = async () => {
@@ -27,13 +27,13 @@ const createAdmin = async () => {
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ 
+    const newUser = await User.create({ 
       name, 
       email, 
       password: hashedPassword, 
       role: 'admin' 
     });
-    
+
     console.log('Usuário admin criado com sucesso!');
   } catch (error) {
     console.error('Erro ao criar usuário admin:', error);

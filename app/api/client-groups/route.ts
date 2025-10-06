@@ -13,7 +13,10 @@ export async function GET() {
     }
 
     await connectDB();
-    const groups = await ClientGroup.find({ ownerId: session.user.id }).populate('clientIds');
+    // Admins podem ver todos os grupos.
+    const filter = session.user.role === 'admin' ? {} : { ownerId: session.user.id };
+
+    const groups = await ClientGroup.find(filter).populate('clientIds');
     
     return NextResponse.json(groups);
   } catch (error) {

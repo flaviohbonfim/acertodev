@@ -53,34 +53,36 @@ export default function DashboardPage() {
 
   const fetchDashboardStats = async () => {
     try {
-      const [clientsRes, groupsRes, activityTypesRes, timeEntriesRes] = await Promise.all([
+      // Define o período do mês atual
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+      const [clientsRes, groupsRes, activityTypesRes, reportRes] = await Promise.all([
         fetch('/api/clients'),
         fetch('/api/client-groups'),
         fetch('/api/activity-types'),
-        fetch('/api/time-entries'),
+        fetch(`/api/reports?startDate=${firstDay}&endDate=${lastDay}`), // Usa a API de relatórios
       ]);
 
-      const [clients, groups, activityTypes, timeEntries] = await Promise.all([
+      if (!clientsRes.ok || !groupsRes.ok || !activityTypesRes.ok || !reportRes.ok) {
+        throw new Error('Falha ao carregar os dados do dashboard');
+      }
+
+      const [clients, groups, activityTypes, reportData] = await Promise.all([
         clientsRes.json(),
         groupsRes.json(),
         activityTypesRes.json(),
-        timeEntriesRes.json(),
+        reportRes.json(),
       ]);
-
-      const totalHours = timeEntries.reduce((sum: number, entry: any) => sum + entry.hours, 0);
-      const totalValue = timeEntries.reduce((sum: number, entry: any) => {
-        // Aqui você precisaria calcular o valor baseado no cliente
-        // Por simplicidade, vamos usar um valor médio
-        return sum + (entry.hours * 100); // Valor médio de R$ 100/hora
-      }, 0);
 
       setStats({
         totalClients: clients.length,
         totalGroups: groups.length,
         totalActivityTypes: activityTypes.length,
-        totalTimeEntries: timeEntries.length,
-        totalHours,
-        totalValue,
+        totalTimeEntries: reportData.clients.reduce((sum: number, client: any) => sum + client.entries.length, 0),
+        totalHours: reportData.summary.totalHours,
+        totalValue: reportData.summary.totalValue,
       });
     } catch (err) {
       setError('Erro ao carregar estatísticas');

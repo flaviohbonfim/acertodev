@@ -13,7 +13,10 @@ export async function GET() {
     }
 
     await connectDB();
-    const activityTypes = await ActivityType.find({ ownerId: session.user.id });
+    // Admins podem ver todos os tipos de atividade.
+    const filter = session.user.role === 'admin' ? {} : { ownerId: session.user.id };
+
+    const activityTypes = await ActivityType.find(filter);
     
     return NextResponse.json(activityTypes);
   } catch (error) {

@@ -32,7 +32,7 @@ export async function PUT(
     const updatedTimeEntry = await TimeEntry.findByIdAndUpdate(
       params.id,
       { 
-        date: new Date(date), 
+        date: new Date(`${date}T00:00:00`), // Trata a data como local, não UTC
         hours, 
         description, 
         activityTypeId, 

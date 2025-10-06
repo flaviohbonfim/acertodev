@@ -82,6 +82,28 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
     if (isOpen) {
       fetchData();
     }
+
+    if (timeEntry) {
+      // Garante que o formulário seja preenchido ao editar
+      setFormData({
+        date: new Date(timeEntry.date).toISOString().split('T')[0],
+        hours: timeEntry.hours,
+        description: timeEntry.description,
+        activityTypeId: typeof timeEntry.activityTypeId === 'string' ? timeEntry.activityTypeId : timeEntry.activityTypeId._id,
+        targetType: timeEntry.target.type,
+        targetId: timeEntry.target.id,
+      });
+    } else {
+      // Reseta para o estado inicial ao criar um novo
+      setFormData({
+        date: new Date().toISOString().split('T')[0],
+        hours: 0,
+        description: '',
+        activityTypeId: '',
+        targetType: 'client',
+        targetId: '',
+      });
+    }
   }, [isOpen]);
 
   const fetchData = async () => {

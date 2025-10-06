@@ -26,19 +26,18 @@ export async function GET(request: NextRequest) {
 
     // Buscar todos os lançamentos no período
     const timeEntries = await TimeEntry.find({
-      ownerId: session.user.id,
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
       }
     }).populate('activityTypeId');
 
-    // Buscar todos os clientes do usuário
-    const clients = await Client.find({ ownerId: session.user.id });
+    // Buscar todos os clientes (sem filtro de ownerId)
+    const clients = await Client.find({});
     const clientMap = new Map(clients.map(client => [client._id.toString(), client]));
 
-    // Buscar todos os grupos do usuário
-    const groups = await ClientGroup.find({ ownerId: session.user.id }).populate('clientIds');
+    // Buscar todos os grupos (sem filtro de ownerId)
+    const groups = await ClientGroup.find({}).populate('clientIds');
     const groupMap = new Map(groups.map(group => [group._id.toString(), group]));
 
     // Calcular relatório por cliente
