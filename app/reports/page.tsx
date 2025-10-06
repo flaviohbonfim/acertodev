@@ -5,6 +5,7 @@ import {
   Box,
   Heading,
   Button,
+  Flex,
   VStack,
   HStack,
   FormControl,
@@ -31,6 +32,7 @@ import {
   Spinner,
   useColorModeValue,
 } from '@chakra-ui/react';
+import { DownloadIcon } from '@chakra-ui/icons';
 import { useSession } from 'next-auth/react';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -50,6 +52,7 @@ interface ReportData {
       id: string;
       name: string;
       hourlyRate: number;
+      cnpj?: string;
     };
     totalHours: number;
     totalValue: number;
@@ -118,6 +121,54 @@ export default function ReportsPage() {
     }
   };
 
+  const exportToCSV = () => {
+    if (!reportData) {
+      toast({
+        title: 'Nenhum dado para exportar',
+        description: 'Gere um relatório antes de exportar.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const headers = [
+      'Cliente', 'CNPJ', 'Data', 'Horas', 'Descrição', 
+      'Tipo de Atividade', 'Valor por Hora (R$)', 'Valor do Lançamento (R$)'
+    ];
+
+    const rows = reportData.clients.flatMap(clientData => 
+      clientData.entries.map(entry => [
+        `"${clientData.client.name}"`,
+        `"${clientData.client.cnpj || ''}"`,
+        new Date(entry.date).toLocaleDateString('pt-BR'),
+        entry.hours.toFixed(2).replace('.', ','),
+        `"${entry.description.replace(/"/g, '""')}"`,
+        `"${entry.activityType}"`,
+        clientData.client.hourlyRate.toFixed(2).replace('.', ','),
+        (entry.hours * clientData.client.hourlyRate).toFixed(2).replace('.', ',')
+      ].join(';'))
+    );
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows
+    ].join('\n');
+
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const fileName = `relatorio_${reportData.period.startDate}_a_${reportData.period.endDate}.csv`;
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Layout>
       <ProtectedRoute>
@@ -176,7 +227,16 @@ export default function ReportsPage() {
               {/* Resumo */}
               <Card bg={cardBg} border="1px" borderColor={borderColor}>
                 <CardBody>
-                  <Heading size="md" mb={4}>Resumo do Período</Heading>
+                  <Flex justify="space-between" align="center" mb={4}>
+                    <Heading size="md">Resumo do Período</Heading>
+                    <Button
+                      leftIcon={<DownloadIcon />}
+                      colorScheme="green"
+                      variant="outline"
+                      onClick={exportToCSV}
+                      size="sm"
+                    >Exportar CSV</Button>
+                  </Flex>
                   <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
                     <Stat>
                       <StatLabel>Total de Horas</StatLabel>
@@ -233,7 +293,12 @@ export default function ReportsPage() {
                           <Tr key={client.client.id}>
                             <Td>
                               <VStack align="start" spacing={1}>
-                                <Text fontWeight="bold">{client.client.name}</Text>
+                                <HStack>
+                                  <Text fontWeight="bold">{client.client.name}</Text>
+                                  {client.client.cnpj && (
+                                    <Badge variant="outline">{client.client.cnpj}</Badge>
+                                  )}
+                                </HStack>
                                 <Badge colorScheme="blue" size="sm">
                                   {client.entries.length} lançamento(s)
                                 </Badge>

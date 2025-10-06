@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
               client: {
                 id: client._id,
                 name: client.name,
-                hourlyRate: client.hourlyRate
+                hourlyRate: client.hourlyRate,
+                cnpj: client.cnpj
               },
               totalHours: 0,
               totalValue: 0,
@@ -89,7 +90,8 @@ export async function GET(request: NextRequest) {
                 client: {
                   id: client._id,
                   name: client.name,
-                  hourlyRate: client.hourlyRate
+                  hourlyRate: client.hourlyRate,
+                  cnpj: client.cnpj
                 },
                 totalHours: 0,
                 totalValue: 0,
