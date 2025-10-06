@@ -6,6 +6,8 @@ import TimeEntry from '@/models/TimeEntry';
 import Client from '@/models/Client';
 import ClientGroup from '@/models/ClientGroup';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -38,6 +38,16 @@ export default function ActivityTypeForm({ isOpen, onClose, activityType, onSucc
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const toast = useToast();
+
+  useEffect(() => {
+    if (activityType) {
+      setFormData({
+        name: activityType.name,
+      });
+    } else {
+      setFormData({ name: '' });
+    }
+  }, [activityType, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

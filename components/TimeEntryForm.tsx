@@ -79,28 +79,20 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
   useEffect(() => {
     if (isOpen) {
       fetchData();
-    }
-
-    if (timeEntry) {
-      // Garante que o formulário seja preenchido ao editar
-      setFormData({
-        date: new Date(timeEntry.date).toISOString().split('T')[0],
-        hours: timeEntry.hours,
-        description: timeEntry.description,
-        activityTypeId: timeEntry.activityTypeId,
-        targetType: timeEntry.target.type,
-        targetId: timeEntry.target.id,
-      });
-    } else {
-      // Reseta para o estado inicial ao criar um novo
-      setFormData({
-        date: new Date().toISOString().split('T')[0],
-        hours: 0,
-        description: '',
-        activityTypeId: '',
-        targetType: 'client',
-        targetId: '',
-      });
+      if (timeEntry) {
+        // Garante que o formulário seja preenchido ao editar
+        setFormData({
+          date: new Date(timeEntry.date).toISOString().split('T')[0],
+          hours: timeEntry.hours,
+          description: timeEntry.description,
+          activityTypeId: timeEntry.activityTypeId,
+          targetType: timeEntry.target.type,
+          targetId: timeEntry.target.id,
+        });
+      } else {
+        // Reseta para o estado inicial ao criar um novo
+        resetFormState();
+      }
     }
   }, [isOpen, timeEntry]);
 
@@ -183,7 +175,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
     }
   };
 
-  const handleClose = () => {
+  const resetFormState = () => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       hours: 0,
@@ -192,6 +184,10 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
       targetType: 'client',
       targetId: '',
     });
+  }
+
+  const handleClose = () => {
+    resetFormState();
     setError('');
     onClose();
   };

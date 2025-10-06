@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -44,6 +44,19 @@ export default function ClientForm({ isOpen, onClose, client, onSuccess }: Clien
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const toast = useToast();
+
+  useEffect(() => {
+    if (client) {
+      setFormData({
+        name: client.name || '',
+        cnpj: client.cnpj || '',
+        email: client.email || '',
+        hourlyRate: client.hourlyRate || 0,
+      });
+    } else {
+      setFormData({ name: '', cnpj: '', email: '', hourlyRate: 0 });
+    }
+  }, [client, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

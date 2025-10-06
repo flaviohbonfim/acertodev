@@ -54,8 +54,18 @@ export default function ClientGroupForm({ isOpen, onClose, group, onSuccess }: C
   useEffect(() => {
     if (isOpen) {
       fetchClients();
+
+      if (group) {
+        setFormData({
+          name: group.name || '',
+          clientIds: group.clientIds || [],
+        });
+      } else {
+        // Reset form for creation
+        setFormData({ name: '', clientIds: [] });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, group]);
 
   const fetchClients = async () => {
     try {
