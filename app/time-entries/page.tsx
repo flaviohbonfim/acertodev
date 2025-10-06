@@ -32,6 +32,7 @@ import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import TimeEntryForm from '@/components/TimeEntryForm';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface ActivityType {
   _id: string;
@@ -68,7 +69,9 @@ export default function TimeEntriesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTimeEntry, setSelectedTimeEntry] = useState<TimeEntryForForm | null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -112,13 +115,16 @@ export default function TimeEntriesPage() {
     onOpen();
   };
 
-  const handleDelete = async (timeEntryId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este lançamento?')) {
-      return;
-    }
+  const handleDeleteClick = (timeEntryId: string) => {
+    setEntryToDelete(timeEntryId);
+    onDeleteOpen();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!entryToDelete) return;
 
     try {
-      const response = await fetch(`/api/time-entries/${timeEntryId}`, {
+      const response = await fetch(`/api/time-entries/${entryToDelete}`, {
         method: 'DELETE',
       });
 
@@ -142,6 +148,8 @@ export default function TimeEntriesPage() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setEntryToDelete(null);
     }
   };
 
@@ -254,7 +262,7 @@ export default function TimeEntriesPage() {
                               colorScheme="red"
                               variant="outline"
                               flex={1}
-                              onClick={() => handleDelete(entry._id)}
+                              onClick={() => handleDeleteClick(entry._id)}
                             >
                               Deletar
                             </Button>
@@ -324,7 +332,7 @@ export default function TimeEntriesPage() {
                                 size="sm"
                                 colorScheme="red"
                                 variant="ghost"
-                                onClick={() => handleDelete(entry._id)}
+                                onClick={() => handleDeleteClick(entry._id)}
                               />
                             </Td>
                           </Tr>
@@ -342,6 +350,16 @@ export default function TimeEntriesPage() {
             onClose={onClose}
             timeEntry={selectedTimeEntry}
             onSuccess={handleSuccess}
+          />
+
+          <ConfirmDialog
+            isOpen={isDeleteOpen}
+            onClose={onDeleteClose}
+            onConfirm={handleDeleteConfirm}
+            title="Confirmar Exclusão"
+            message="Tem certeza que deseja deletar este lançamento? Esta ação não pode ser desfeita."
+            confirmText="Deletar"
+            cancelText="Cancelar"
           />
         </Box>
       </ProtectedRoute>

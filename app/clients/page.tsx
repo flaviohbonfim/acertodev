@@ -32,6 +32,7 @@ import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ClientForm from '@/components/ClientForm';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Client {
   _id: string;
@@ -47,7 +48,9 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -83,13 +86,16 @@ export default function ClientsPage() {
     onOpen();
   };
 
-  const handleDelete = async (clientId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este cliente?')) {
-      return;
-    }
+  const handleDeleteClick = (clientId: string) => {
+    setClientToDelete(clientId);
+    onDeleteOpen();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!clientToDelete) return;
 
     try {
-      const response = await fetch(`/api/clients/${clientId}`, {
+      const response = await fetch(`/api/clients/${clientToDelete}`, {
         method: 'DELETE',
       });
 
@@ -113,6 +119,8 @@ export default function ClientsPage() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setClientToDelete(null);
     }
   };
 
@@ -228,7 +236,7 @@ export default function ClientsPage() {
                               colorScheme="red"
                               variant="outline"
                               flex={1}
-                              onClick={() => handleDelete(client._id)}
+                              onClick={() => handleDeleteClick(client._id)}
                             >
                               Deletar
                             </Button>
@@ -293,7 +301,7 @@ export default function ClientsPage() {
                                 size="sm"
                                 colorScheme="red"
                                 variant="ghost"
-                                onClick={() => handleDelete(client._id)}
+                                onClick={() => handleDeleteClick(client._id)}
                               />
                             </Td>
                           </Tr>
@@ -311,6 +319,16 @@ export default function ClientsPage() {
             onClose={onClose}
             client={selectedClient}
             onSuccess={handleSuccess}
+          />
+
+          <ConfirmDialog
+            isOpen={isDeleteOpen}
+            onClose={onDeleteClose}
+            onConfirm={handleDeleteConfirm}
+            title="Confirmar Exclusão"
+            message="Tem certeza que deseja deletar este cliente? Esta ação não pode ser desfeita."
+            confirmText="Deletar"
+            cancelText="Cancelar"
           />
         </Box>
       </ProtectedRoute>

@@ -30,6 +30,7 @@ import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ActivityTypeForm from '@/components/ActivityTypeForm';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface ActivityType {
   _id: string;
@@ -42,7 +43,9 @@ export default function ActivityTypesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedActivityType, setSelectedActivityType] = useState<ActivityType | null>(null);
+  const [activityTypeToDelete, setActivityTypeToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -78,13 +81,16 @@ export default function ActivityTypesPage() {
     onOpen();
   };
 
-  const handleDelete = async (activityTypeId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este tipo de atividade?')) {
-      return;
-    }
+  const handleDeleteClick = (activityTypeId: string) => {
+    setActivityTypeToDelete(activityTypeId);
+    onDeleteOpen();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!activityTypeToDelete) return;
 
     try {
-      const response = await fetch(`/api/activity-types/${activityTypeId}`, {
+      const response = await fetch(`/api/activity-types/${activityTypeToDelete}`, {
         method: 'DELETE',
       });
 
@@ -108,6 +114,8 @@ export default function ActivityTypesPage() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setActivityTypeToDelete(null);
     }
   };
 
@@ -192,7 +200,7 @@ export default function ActivityTypesPage() {
                               colorScheme="red"
                               variant="outline"
                               flex={1}
-                              onClick={() => handleDelete(activityType._id)}
+                              onClick={() => handleDeleteClick(activityType._id)}
                             >
                               Deletar
                             </Button>
@@ -231,14 +239,14 @@ export default function ActivityTypesPage() {
                                 mr={2}
                                 onClick={() => handleEdit(activityType)}
                               />
-                              <IconButton
-                                aria-label="Deletar tipo de atividade"
-                                icon={<DeleteIcon />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                onClick={() => handleDelete(activityType._id)}
-                              />
+                            <IconButton
+                              aria-label="Deletar tipo de atividade"
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              colorScheme="red"
+                              variant="ghost"
+                              onClick={() => handleDeleteClick(activityType._id)}
+                            />
                             </Td>
                           </Tr>
                         ))}
@@ -255,6 +263,16 @@ export default function ActivityTypesPage() {
             onClose={onClose}
             activityType={selectedActivityType}
             onSuccess={handleSuccess}
+          />
+
+          <ConfirmDialog
+            isOpen={isDeleteOpen}
+            onClose={onDeleteClose}
+            onConfirm={handleDeleteConfirm}
+            title="Confirmar Exclusão"
+            message="Tem certeza que deseja deletar este tipo de atividade? Esta ação não pode ser desfeita."
+            confirmText="Deletar"
+            cancelText="Cancelar"
           />
         </Box>
       </ProtectedRoute>

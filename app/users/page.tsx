@@ -31,6 +31,7 @@ import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import UserForm from '@/components/UserForm';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface User {
   _id: string;
@@ -45,7 +46,9 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -81,13 +84,16 @@ export default function UsersPage() {
     onOpen();
   };
 
-  const handleDelete = async (userId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este usuário?')) {
-      return;
-    }
+  const handleDeleteClick = (userId: string) => {
+    setUserToDelete(userId);
+    onDeleteOpen();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
 
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/users/${userToDelete}`, {
         method: 'DELETE',
       });
 
@@ -111,6 +117,8 @@ export default function UsersPage() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -204,7 +212,7 @@ export default function UsersPage() {
                               colorScheme="red"
                               variant="outline"
                               flex={1}
-                              onClick={() => handleDelete(user._id)}
+                              onClick={() => handleDeleteClick(user._id)}
                             >
                               Deletar
                             </Button>
@@ -251,14 +259,14 @@ export default function UsersPage() {
                                 mr={2}
                                 onClick={() => handleEdit(user)}
                               />
-                              <IconButton
-                                aria-label="Deletar usuário"
-                                icon={<DeleteIcon />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                onClick={() => handleDelete(user._id)}
-                              />
+                            <IconButton
+                              aria-label="Deletar usuário"
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              colorScheme="red"
+                              variant="ghost"
+                              onClick={() => handleDeleteClick(user._id)}
+                            />
                             </Td>
                           </Tr>
                         ))}
@@ -275,6 +283,16 @@ export default function UsersPage() {
             onClose={onClose}
             user={selectedUser}
             onSuccess={handleSuccess}
+          />
+
+          <ConfirmDialog
+            isOpen={isDeleteOpen}
+            onClose={onDeleteClose}
+            onConfirm={handleDeleteConfirm}
+            title="Confirmar Exclusão"
+            message="Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita."
+            confirmText="Deletar"
+            cancelText="Cancelar"
           />
         </Box>
       </ProtectedRoute>

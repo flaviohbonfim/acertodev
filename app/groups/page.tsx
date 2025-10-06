@@ -33,6 +33,7 @@ import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ClientGroupForm from '@/components/ClientGroupForm';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface Client {
   _id: string;
@@ -59,7 +60,9 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<ClientGroupForForm | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -99,13 +102,16 @@ export default function GroupsPage() {
     onOpen();
   };
 
-  const handleDelete = async (groupId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este grupo?')) {
-      return;
-    }
+  const handleDeleteClick = (groupId: string) => {
+    setGroupToDelete(groupId);
+    onDeleteOpen();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!groupToDelete) return;
 
     try {
-      const response = await fetch(`/api/client-groups/${groupId}`, {
+      const response = await fetch(`/api/client-groups/${groupToDelete}`, {
         method: 'DELETE',
       });
 
@@ -129,6 +135,8 @@ export default function GroupsPage() {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setGroupToDelete(null);
     }
   };
 
@@ -233,7 +241,7 @@ export default function GroupsPage() {
                               colorScheme="red"
                               variant="outline"
                               flex={1}
-                              onClick={() => handleDelete(group._id)}
+                              onClick={() => handleDeleteClick(group._id)}
                             >
                               Deletar
                             </Button>
@@ -283,14 +291,14 @@ export default function GroupsPage() {
                                 mr={2}
                                 onClick={() => handleEdit(group)}
                               />
-                              <IconButton
-                                aria-label="Deletar grupo"
-                                icon={<DeleteIcon />}
-                                size="sm"
-                                colorScheme="red"
-                                variant="ghost"
-                                onClick={() => handleDelete(group._id)}
-                              />
+                            <IconButton
+                              aria-label="Deletar grupo"
+                              icon={<DeleteIcon />}
+                              size="sm"
+                              colorScheme="red"
+                              variant="ghost"
+                              onClick={() => handleDeleteClick(group._id)}
+                            />
                             </Td>
                           </Tr>
                         ))}
@@ -307,6 +315,16 @@ export default function GroupsPage() {
             onClose={onClose}
             group={selectedGroup}
             onSuccess={handleSuccess}
+          />
+
+          <ConfirmDialog
+            isOpen={isDeleteOpen}
+            onClose={onDeleteClose}
+            onConfirm={handleDeleteConfirm}
+            title="Confirmar Exclusão"
+            message="Tem certeza que deseja deletar este grupo? Esta ação não pode ser desfeita."
+            confirmText="Deletar"
+            cancelText="Cancelar"
           />
         </Box>
       </ProtectedRoute>
