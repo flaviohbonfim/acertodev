@@ -193,9 +193,9 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} size={{ base: 'full', md: 'lg' }}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
             {timeEntry ? 'Editar Lançamento' : 'Novo Lançamento'}

@@ -95,9 +95,9 @@ export default function ActivityTypeForm({ isOpen, onClose, activityType, onSucc
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} size={{ base: 'full', md: 'md' }}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
             {activityType ? 'Editar Tipo de Atividade' : 'Novo Tipo de Atividade'}

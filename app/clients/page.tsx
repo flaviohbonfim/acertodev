@@ -22,6 +22,11 @@ import {
   CardBody,
   Text,
   Badge,
+  Stack,
+  HStack,
+  VStack,
+  useBreakpointValue,
+  Divider,
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
@@ -47,6 +52,7 @@ export default function ClientsPage() {
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
     fetchClients();
@@ -130,16 +136,23 @@ export default function ClientsPage() {
     <Layout>
       <ProtectedRoute requiredRole="admin">
         <Box>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
-            <Heading>Clientes</Heading>
+          <Stack
+            direction={{ base: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ base: 'stretch', sm: 'center' }}
+            mb={6}
+            spacing={4}
+          >
+            <Heading size={{ base: 'lg', md: 'xl' }}>Clientes</Heading>
             <Button
               leftIcon={<AddIcon />}
               colorScheme="brand"
               onClick={handleCreate}
+              width={{ base: 'full', sm: 'auto' }}
             >
-              Novo Cliente
+              {isMobile ? 'Novo' : 'Novo Cliente'}
             </Button>
-          </Box>
+          </Stack>
 
           {error ? (
             <Alert status="error">
@@ -147,74 +160,150 @@ export default function ClientsPage() {
               {error}
             </Alert>
           ) : (
-            <Card bg={cardBg} border="1px" borderColor={borderColor}>
-              <CardBody>
-                {clients.length === 0 ? (
-                  <Text textAlign="center" py={8} color="gray.500">
-                    Nenhum cliente encontrado
-                  </Text>
-                ) : (
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Nome</Th>
-                        <Th>CNPJ</Th>
-                        <Th>Email</Th>
-                        <Th>Valor/Hora</Th>
-                        <Th>Data de Criação</Th>
-                        <Th>Ações</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {clients.map((client) => (
-                        <Tr key={client._id}>
-                          <Td>
-                            <Text fontWeight="bold">{client.name}</Text>
-                          </Td>
-                          <Td>
-                            {client.cnpj ? (
+            <>
+              {clients.length === 0 ? (
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Text textAlign="center" py={8} color="gray.500">
+                      Nenhum cliente encontrado
+                    </Text>
+                  </CardBody>
+                </Card>
+              ) : isMobile ? (
+                // Mobile: Cards
+                <VStack spacing={4}>
+                  {clients.map((client) => (
+                    <Card key={client._id} bg={cardBg} border="1px" borderColor={borderColor} w="full">
+                      <CardBody>
+                        <VStack align="stretch" spacing={3}>
+                          <Text fontWeight="bold" fontSize="lg">{client.name}</Text>
+                          
+                          {client.cnpj && (
+                            <HStack>
+                              <Text fontSize="sm" color="gray.500">CNPJ:</Text>
                               <Badge colorScheme="green" variant="outline">
                                 {client.cnpj}
                               </Badge>
-                            ) : (
-                              <Text color="gray.500">-</Text>
-                            )}
-                          </Td>
-                          <Td>{client.email || '-'}</Td>
-                          <Td>
-                            <Text fontWeight="bold" color="green.500">
-                              R$ {client.hourlyRate.toLocaleString('pt-BR', { 
-                                minimumFractionDigits: 2 
-                              })}
-                            </Text>
-                          </Td>
-                          <Td>
-                            {new Date(client.createdAt).toLocaleDateString('pt-BR')}
-                          </Td>
-                          <Td>
-                            <IconButton
-                              aria-label="Editar cliente"
-                              icon={<EditIcon />}
+                            </HStack>
+                          )}
+                          
+                          {client.email && (
+                            <HStack>
+                              <Text fontSize="sm" color="gray.500">Email:</Text>
+                              <Text fontSize="sm">{client.email}</Text>
+                            </HStack>
+                          )}
+                          
+                          <Divider />
+                          
+                          <HStack justifyContent="space-between">
+                            <VStack align="start" spacing={0}>
+                              <Text fontSize="sm" color="gray.500">Valor/Hora</Text>
+                              <Text fontWeight="bold" color="green.500" fontSize="lg">
+                                R$ {client.hourlyRate.toLocaleString('pt-BR', { 
+                                  minimumFractionDigits: 2 
+                                })}
+                              </Text>
+                            </VStack>
+                            <VStack align="end" spacing={0}>
+                              <Text fontSize="sm" color="gray.500">Criado em</Text>
+                              <Text fontSize="sm">
+                                {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+                              </Text>
+                            </VStack>
+                          </HStack>
+                          
+                          <HStack spacing={2} pt={2}>
+                            <Button
+                              leftIcon={<EditIcon />}
                               size="sm"
-                              mr={2}
+                              flex={1}
                               onClick={() => handleEdit(client)}
-                            />
-                            <IconButton
-                              aria-label="Deletar cliente"
-                              icon={<DeleteIcon />}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              leftIcon={<DeleteIcon />}
                               size="sm"
                               colorScheme="red"
-                              variant="ghost"
+                              variant="outline"
+                              flex={1}
                               onClick={() => handleDelete(client._id)}
-                            />
-                          </Td>
+                            >
+                              Deletar
+                            </Button>
+                          </HStack>
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </VStack>
+              ) : (
+                // Desktop: Table
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Table variant="simple">
+                      <Thead>
+                        <Tr>
+                          <Th>Nome</Th>
+                          <Th>CNPJ</Th>
+                          <Th>Email</Th>
+                          <Th>Valor/Hora</Th>
+                          <Th>Data de Criação</Th>
+                          <Th>Ações</Th>
                         </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                )}
-              </CardBody>
-            </Card>
+                      </Thead>
+                      <Tbody>
+                        {clients.map((client) => (
+                          <Tr key={client._id}>
+                            <Td>
+                              <Text fontWeight="bold">{client.name}</Text>
+                            </Td>
+                            <Td>
+                              {client.cnpj ? (
+                                <Badge colorScheme="green" variant="outline">
+                                  {client.cnpj}
+                                </Badge>
+                              ) : (
+                                <Text color="gray.500">-</Text>
+                              )}
+                            </Td>
+                            <Td>{client.email || '-'}</Td>
+                            <Td>
+                              <Text fontWeight="bold" color="green.500">
+                                R$ {client.hourlyRate.toLocaleString('pt-BR', { 
+                                  minimumFractionDigits: 2 
+                                })}
+                              </Text>
+                            </Td>
+                            <Td>
+                              {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+                            </Td>
+                            <Td>
+                              <IconButton
+                                aria-label="Editar cliente"
+                                icon={<EditIcon />}
+                                size="sm"
+                                mr={2}
+                                onClick={() => handleEdit(client)}
+                              />
+                              <IconButton
+                                aria-label="Deletar cliente"
+                                icon={<DeleteIcon />}
+                                size="sm"
+                                colorScheme="red"
+                                variant="ghost"
+                                onClick={() => handleDelete(client._id)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </CardBody>
+                </Card>
+              )}
+            </>
           )}
 
           <ClientForm

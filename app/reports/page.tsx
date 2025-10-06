@@ -8,6 +8,7 @@ import {
   Flex,
   VStack,
   HStack,
+  Stack,
   FormControl,
   FormLabel,
   Input,
@@ -173,12 +174,12 @@ export default function ReportsPage() {
     <Layout>
       <ProtectedRoute>
         <Box>
-          <Heading mb={6}>Relatórios</Heading>
+          <Heading mb={6} size={{ base: 'lg', md: 'xl' }}>Relatórios</Heading>
 
           <Card bg={cardBg} border="1px" borderColor={borderColor} mb={6}>
             <CardBody>
               <VStack spacing={4}>
-                <HStack spacing={4} w="full">
+                <VStack spacing={4} w="full">
                   <FormControl>
                     <FormLabel>Data Inicial</FormLabel>
                     <Input
@@ -195,7 +196,7 @@ export default function ReportsPage() {
                       onChange={(e) => setEndDate(e.target.value)}
                     />
                   </FormControl>
-                </HStack>
+                </VStack>
                 <Button
                   colorScheme="brand"
                   onClick={generateReport}
@@ -227,16 +228,23 @@ export default function ReportsPage() {
               {/* Resumo */}
               <Card bg={cardBg} border="1px" borderColor={borderColor}>
                 <CardBody>
-                  <Flex justify="space-between" align="center" mb={4}>
-                    <Heading size="md">Resumo do Período</Heading>
+                  <Stack
+                    direction={{ base: 'column', sm: 'row' }}
+                    justify="space-between"
+                    align={{ base: 'stretch', sm: 'center' }}
+                    mb={4}
+                    spacing={3}
+                  >
+                    <Heading size={{ base: 'sm', md: 'md' }}>Resumo do Período</Heading>
                     <Button
                       leftIcon={<DownloadIcon />}
                       colorScheme="green"
                       variant="outline"
                       onClick={exportToCSV}
                       size="sm"
+                      width={{ base: 'full', sm: 'auto' }}
                     >Exportar CSV</Button>
-                  </Flex>
+                  </Stack>
                   <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
                     <Stat>
                       <StatLabel>Total de Horas</StatLabel>
@@ -279,48 +287,103 @@ export default function ReportsPage() {
                       Nenhum lançamento encontrado no período
                     </Text>
                   ) : (
-                    <Table variant="simple">
-                      <Thead>
-                        <Tr>
-                          <Th>Cliente</Th>
-                          <Th>Valor/Hora</Th>
-                          <Th>Total Horas</Th>
-                          <Th>Valor Total</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {reportData.clients.map((client) => (
-                          <Tr key={client.client.id}>
-                            <Td>
-                              <VStack align="start" spacing={1}>
-                                <HStack>
-                                  <Text fontWeight="bold">{client.client.name}</Text>
-                                  {client.client.cnpj && (
-                                    <Badge variant="outline">{client.client.cnpj}</Badge>
-                                  )}
-                                </HStack>
-                                <Badge colorScheme="blue" size="sm">
-                                  {client.entries.length} lançamento(s)
-                                </Badge>
-                              </VStack>
-                            </Td>
-                            <Td>
-                              R$ {client.client.hourlyRate.toLocaleString('pt-BR', { 
-                                minimumFractionDigits: 2 
-                              })}
-                            </Td>
-                            <Td>{client.totalHours.toFixed(1)}h</Td>
-                            <Td>
-                              <Text fontWeight="bold" color="green.500">
-                                R$ {client.totalValue.toLocaleString('pt-BR', { 
-                                  minimumFractionDigits: 2 
-                                })}
-                              </Text>
-                            </Td>
-                          </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
+                    <>
+                      {/* Mobile: Cards */}
+                      <Box display={{ base: 'block', md: 'none' }}>
+                        <VStack spacing={4}>
+                          {reportData.clients.map((client) => (
+                            <Card key={client.client.id} bg={cardBg} border="1px" borderColor={borderColor} w="full">
+                              <CardBody>
+                                <VStack align="stretch" spacing={3}>
+                                  <HStack justifyContent="space-between" flexWrap="wrap">
+                                    <Text fontWeight="bold" fontSize="md">{client.client.name}</Text>
+                                    {client.client.cnpj && (
+                                      <Badge variant="outline" fontSize="xs">{client.client.cnpj}</Badge>
+                                    )}
+                                  </HStack>
+                                  
+                                  <Badge colorScheme="blue" size="sm" alignSelf="flex-start">
+                                    {client.entries.length} lançamento(s)
+                                  </Badge>
+                                  
+                                  <SimpleGrid columns={2} spacing={3} pt={2}>
+                                    <VStack align="start" spacing={0}>
+                                      <Text fontSize="xs" color="gray.500">Valor/Hora</Text>
+                                      <Text fontSize="sm" fontWeight="semibold">
+                                        R$ {client.client.hourlyRate.toLocaleString('pt-BR', { 
+                                          minimumFractionDigits: 2 
+                                        })}
+                                      </Text>
+                                    </VStack>
+                                    <VStack align="start" spacing={0}>
+                                      <Text fontSize="xs" color="gray.500">Total Horas</Text>
+                                      <Text fontSize="sm" fontWeight="semibold" color="blue.500">
+                                        {client.totalHours.toFixed(1)}h
+                                      </Text>
+                                    </VStack>
+                                  </SimpleGrid>
+                                  
+                                  <Box pt={2} borderTop="1px" borderColor={borderColor}>
+                                    <Text fontSize="xs" color="gray.500">Valor Total</Text>
+                                    <Text fontWeight="bold" color="green.500" fontSize="xl">
+                                      R$ {client.totalValue.toLocaleString('pt-BR', { 
+                                        minimumFractionDigits: 2 
+                                      })}
+                                    </Text>
+                                  </Box>
+                                </VStack>
+                              </CardBody>
+                            </Card>
+                          ))}
+                        </VStack>
+                      </Box>
+                      
+                      {/* Desktop: Table */}
+                      <Box display={{ base: 'none', md: 'block' }}>
+                        <Table variant="simple">
+                          <Thead>
+                            <Tr>
+                              <Th>Cliente</Th>
+                              <Th>Valor/Hora</Th>
+                              <Th>Total Horas</Th>
+                              <Th>Valor Total</Th>
+                            </Tr>
+                          </Thead>
+                          <Tbody>
+                            {reportData.clients.map((client) => (
+                              <Tr key={client.client.id}>
+                                <Td>
+                                  <VStack align="start" spacing={1}>
+                                    <HStack>
+                                      <Text fontWeight="bold">{client.client.name}</Text>
+                                      {client.client.cnpj && (
+                                        <Badge variant="outline">{client.client.cnpj}</Badge>
+                                      )}
+                                    </HStack>
+                                    <Badge colorScheme="blue" size="sm">
+                                      {client.entries.length} lançamento(s)
+                                    </Badge>
+                                  </VStack>
+                                </Td>
+                                <Td>
+                                  R$ {client.client.hourlyRate.toLocaleString('pt-BR', { 
+                                    minimumFractionDigits: 2 
+                                  })}
+                                </Td>
+                                <Td>{client.totalHours.toFixed(1)}h</Td>
+                                <Td>
+                                  <Text fontWeight="bold" color="green.500">
+                                    R$ {client.totalValue.toLocaleString('pt-BR', { 
+                                      minimumFractionDigits: 2 
+                                    })}
+                                  </Text>
+                                </Td>
+                              </Tr>
+                            ))}
+                          </Tbody>
+                        </Table>
+                      </Box>
+                    </>
                   )}
                 </CardBody>
               </Card>

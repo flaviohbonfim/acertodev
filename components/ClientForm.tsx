@@ -104,9 +104,9 @@ export default function ClientForm({ isOpen, onClose, client, onSuccess }: Clien
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} size={{ base: 'full', md: 'md' }}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
             {client ? 'Editar Cliente' : 'Novo Cliente'}

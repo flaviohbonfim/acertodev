@@ -109,9 +109,9 @@ export default function UserForm({ isOpen, onClose, user, onSuccess }: UserFormP
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} size={{ base: 'full', md: 'md' }}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
             {user ? 'Editar Usuário' : 'Novo Usuário'}

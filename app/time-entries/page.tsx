@@ -23,6 +23,10 @@ import {
   Text,
   Badge,
   VStack,
+  Stack,
+  HStack,
+  useBreakpointValue,
+  Divider,
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
@@ -69,6 +73,7 @@ export default function TimeEntriesPage() {
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
     fetchTimeEntries();
@@ -160,16 +165,23 @@ export default function TimeEntriesPage() {
     <Layout>
       <ProtectedRoute requiredRole="admin">
         <Box>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
-            <Heading>Lançamentos de Horas</Heading>
+          <Stack
+            direction={{ base: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ base: 'stretch', sm: 'center' }}
+            mb={6}
+            spacing={4}
+          >
+            <Heading size={{ base: 'lg', md: 'xl' }}>Lançamentos de Horas</Heading>
             <Button
               leftIcon={<AddIcon />}
               colorScheme="brand"
               onClick={handleCreate}
+              width={{ base: 'full', sm: 'auto' }}
             >
-              Novo Lançamento
+              {isMobile ? 'Novo' : 'Novo Lançamento'}
             </Button>
-          </Box>
+          </Stack>
 
           {error ? (
             <Alert status="error">
@@ -177,79 +189,152 @@ export default function TimeEntriesPage() {
               {error}
             </Alert>
           ) : (
-            <Card bg={cardBg} border="1px" borderColor={borderColor}>
-              <CardBody>
-                {timeEntries.length === 0 ? (
-                  <Text textAlign="center" py={8} color="gray.500">
-                    Nenhum lançamento encontrado
-                  </Text>
-                ) : (
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Data</Th>
-                        <Th>Horas</Th>
-                        <Th>Descrição</Th>
-                        <Th>Tipo de Atividade</Th>
-                        <Th>Destino</Th>
-                        <Th>Ações</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {timeEntries.map((entry) => (
-                        <Tr key={entry._id}>
-                          <Td>
-                            {new Date(entry.date).toLocaleDateString('pt-BR')}
-                          </Td>
-                          <Td>
-                            <Text fontWeight="bold" color="blue.500">
+            <>
+              {timeEntries.length === 0 ? (
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Text textAlign="center" py={8} color="gray.500">
+                      Nenhum lançamento encontrado
+                    </Text>
+                  </CardBody>
+                </Card>
+              ) : isMobile ? (
+                // Mobile: Cards
+                <VStack spacing={4}>
+                  {timeEntries.map((entry) => (
+                    <Card key={entry._id} bg={cardBg} border="1px" borderColor={borderColor} w="full">
+                      <CardBody>
+                        <VStack align="stretch" spacing={3}>
+                          <HStack justifyContent="space-between">
+                            <VStack align="start" spacing={0}>
+                              <Text fontSize="sm" color="gray.500">Data</Text>
+                              <Text fontWeight="semibold">
+                                {new Date(entry.date).toLocaleDateString('pt-BR')}
+                              </Text>
+                            </VStack>
+                            <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
                               {entry.hours}h
-                            </Text>
-                          </Td>
-                          <Td>
-                            <Text maxW="200px" isTruncated>
-                              {entry.description}
-                            </Text>
-                          </Td>
-                          <Td>
-                            <Badge colorScheme="purple" variant="outline">
-                              {entry.activityTypeId.name}
                             </Badge>
-                          </Td>
-                          <Td>
+                          </HStack>
+                          
+                          <Divider />
+                          
+                          <Box>
+                            <Text fontSize="sm" color="gray.500" mb={1}>Descrição</Text>
+                            <Text fontSize="sm">{entry.description}</Text>
+                          </Box>
+                          
+                          <HStack justifyContent="space-between" flexWrap="wrap" gap={2}>
                             <VStack align="start" spacing={1}>
+                              <Text fontSize="xs" color="gray.500">Tipo de Atividade</Text>
+                              <Badge colorScheme="purple" variant="outline">
+                                {entry.activityTypeId.name}
+                              </Badge>
+                            </VStack>
+                            <VStack align="end" spacing={1}>
+                              <Text fontSize="xs" color="gray.500">Destino</Text>
                               <Badge colorScheme={entry.target.type === 'client' ? 'green' : 'orange'}>
                                 {entry.target.type === 'client' ? 'Cliente' : 'Grupo'}
                               </Badge>
-                              <Text fontSize="sm" color="gray.500">
-                                ID: {entry.target.id}
-                              </Text>
                             </VStack>
-                          </Td>
-                          <Td>
-                            <IconButton
-                              aria-label="Editar lançamento"
-                              icon={<EditIcon />}
+                          </HStack>
+                          
+                          <HStack spacing={2} pt={2}>
+                            <Button
+                              leftIcon={<EditIcon />}
                               size="sm"
-                              mr={2}
+                              flex={1}
                               onClick={() => handleEdit(entry)}
-                            />
-                            <IconButton
-                              aria-label="Deletar lançamento"
-                              icon={<DeleteIcon />}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              leftIcon={<DeleteIcon />}
                               size="sm"
                               colorScheme="red"
-                              variant="ghost"
+                              variant="outline"
+                              flex={1}
                               onClick={() => handleDelete(entry._id)}
-                            />
-                          </Td>
+                            >
+                              Deletar
+                            </Button>
+                          </HStack>
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </VStack>
+              ) : (
+                // Desktop: Table
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Table variant="simple">
+                      <Thead>
+                        <Tr>
+                          <Th>Data</Th>
+                          <Th>Horas</Th>
+                          <Th>Descrição</Th>
+                          <Th>Tipo de Atividade</Th>
+                          <Th>Destino</Th>
+                          <Th>Ações</Th>
                         </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                )}
-              </CardBody>
-            </Card>
+                      </Thead>
+                      <Tbody>
+                        {timeEntries.map((entry) => (
+                          <Tr key={entry._id}>
+                            <Td>
+                              {new Date(entry.date).toLocaleDateString('pt-BR')}
+                            </Td>
+                            <Td>
+                              <Text fontWeight="bold" color="blue.500">
+                                {entry.hours}h
+                              </Text>
+                            </Td>
+                            <Td>
+                              <Text maxW="200px" isTruncated>
+                                {entry.description}
+                              </Text>
+                            </Td>
+                            <Td>
+                              <Badge colorScheme="purple" variant="outline">
+                                {entry.activityTypeId.name}
+                              </Badge>
+                            </Td>
+                            <Td>
+                              <VStack align="start" spacing={1}>
+                                <Badge colorScheme={entry.target.type === 'client' ? 'green' : 'orange'}>
+                                  {entry.target.type === 'client' ? 'Cliente' : 'Grupo'}
+                                </Badge>
+                                <Text fontSize="sm" color="gray.500">
+                                  ID: {entry.target.id}
+                                </Text>
+                              </VStack>
+                            </Td>
+                            <Td>
+                              <IconButton
+                                aria-label="Editar lançamento"
+                                icon={<EditIcon />}
+                                size="sm"
+                                mr={2}
+                                onClick={() => handleEdit(entry)}
+                              />
+                              <IconButton
+                                aria-label="Deletar lançamento"
+                                icon={<DeleteIcon />}
+                                size="sm"
+                                colorScheme="red"
+                                variant="ghost"
+                                onClick={() => handleDelete(entry._id)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </CardBody>
+                </Card>
+              )}
+            </>
           )}
 
           <TimeEntryForm

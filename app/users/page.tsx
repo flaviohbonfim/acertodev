@@ -22,6 +22,10 @@ import {
   Card,
   CardBody,
   Text,
+  Stack,
+  HStack,
+  VStack,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
@@ -46,6 +50,7 @@ export default function UsersPage() {
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
     fetchUsers();
@@ -129,16 +134,23 @@ export default function UsersPage() {
     <Layout>
       <ProtectedRoute requiredRole="admin">
         <Box>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
-            <Heading>Usuários</Heading>
+          <Stack
+            direction={{ base: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ base: 'stretch', sm: 'center' }}
+            mb={6}
+            spacing={4}
+          >
+            <Heading size={{ base: 'lg', md: 'xl' }}>Usuários</Heading>
             <Button
               leftIcon={<AddIcon />}
               colorScheme="brand"
               onClick={handleCreate}
+              width={{ base: 'full', sm: 'auto' }}
             >
-              Novo Usuário
+              {isMobile ? 'Novo' : 'Novo Usuário'}
             </Button>
-          </Box>
+          </Stack>
 
           {error ? (
             <Alert status="error">
@@ -146,62 +158,116 @@ export default function UsersPage() {
               {error}
             </Alert>
           ) : (
-            <Card bg={cardBg} border="1px" borderColor={borderColor}>
-              <CardBody>
-                {users.length === 0 ? (
-                  <Text textAlign="center" py={8} color="gray.500">
-                    Nenhum usuário encontrado
-                  </Text>
-                ) : (
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Nome</Th>
-                        <Th>Email</Th>
-                        <Th>Função</Th>
-                        <Th>Data de Criação</Th>
-                        <Th>Ações</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {users.map((user) => (
-                        <Tr key={user._id}>
-                          <Td>{user.name}</Td>
-                          <Td>{user.email}</Td>
-                          <Td>
+            <>
+              {users.length === 0 ? (
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Text textAlign="center" py={8} color="gray.500">
+                      Nenhum usuário encontrado
+                    </Text>
+                  </CardBody>
+                </Card>
+              ) : isMobile ? (
+                // Mobile: Cards
+                <VStack spacing={4}>
+                  {users.map((user) => (
+                    <Card key={user._id} bg={cardBg} border="1px" borderColor={borderColor} w="full">
+                      <CardBody>
+                        <VStack align="stretch" spacing={3}>
+                          <HStack justifyContent="space-between">
+                            <Text fontWeight="bold" fontSize="lg">{user.name}</Text>
                             <Badge
                               colorScheme={user.role === 'admin' ? 'red' : 'blue'}
                             >
-                              {user.role === 'admin' ? 'Administrador' : 'Visualizador'}
+                              {user.role === 'admin' ? 'Admin' : 'Viewer'}
                             </Badge>
-                          </Td>
-                          <Td>
-                            {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                          </Td>
-                          <Td>
-                            <IconButton
-                              aria-label="Editar usuário"
-                              icon={<EditIcon />}
+                          </HStack>
+                          
+                          <Text fontSize="sm" color="gray.600">{user.email}</Text>
+                          
+                          <Text fontSize="sm" color="gray.500">
+                            Criado em: {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                          </Text>
+                          
+                          <HStack spacing={2} pt={2}>
+                            <Button
+                              leftIcon={<EditIcon />}
                               size="sm"
-                              mr={2}
+                              flex={1}
                               onClick={() => handleEdit(user)}
-                            />
-                            <IconButton
-                              aria-label="Deletar usuário"
-                              icon={<DeleteIcon />}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              leftIcon={<DeleteIcon />}
                               size="sm"
                               colorScheme="red"
-                              variant="ghost"
+                              variant="outline"
+                              flex={1}
                               onClick={() => handleDelete(user._id)}
-                            />
-                          </Td>
+                            >
+                              Deletar
+                            </Button>
+                          </HStack>
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </VStack>
+              ) : (
+                // Desktop: Table
+                <Card bg={cardBg} border="1px" borderColor={borderColor}>
+                  <CardBody>
+                    <Table variant="simple">
+                      <Thead>
+                        <Tr>
+                          <Th>Nome</Th>
+                          <Th>Email</Th>
+                          <Th>Função</Th>
+                          <Th>Data de Criação</Th>
+                          <Th>Ações</Th>
                         </Tr>
-                      ))}
-                    </Tbody>
-                  </Table>
-                )}
-              </CardBody>
-            </Card>
+                      </Thead>
+                      <Tbody>
+                        {users.map((user) => (
+                          <Tr key={user._id}>
+                            <Td>{user.name}</Td>
+                            <Td>{user.email}</Td>
+                            <Td>
+                              <Badge
+                                colorScheme={user.role === 'admin' ? 'red' : 'blue'}
+                              >
+                                {user.role === 'admin' ? 'Administrador' : 'Visualizador'}
+                              </Badge>
+                            </Td>
+                            <Td>
+                              {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+                            </Td>
+                            <Td>
+                              <IconButton
+                                aria-label="Editar usuário"
+                                icon={<EditIcon />}
+                                size="sm"
+                                mr={2}
+                                onClick={() => handleEdit(user)}
+                              />
+                              <IconButton
+                                aria-label="Deletar usuário"
+                                icon={<DeleteIcon />}
+                                size="sm"
+                                colorScheme="red"
+                                variant="ghost"
+                                onClick={() => handleDelete(user._id)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </CardBody>
+                </Card>
+              )}
+            </>
           )}
 
           <UserForm

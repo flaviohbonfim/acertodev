@@ -140,9 +140,9 @@ export default function ClientGroupForm({ isOpen, onClose, group, onSuccess }: C
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} size={{ base: 'full', md: 'lg' }}>
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
             {group ? 'Editar Grupo' : 'Novo Grupo'}
