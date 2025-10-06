@@ -23,7 +23,6 @@ import {
   Text,
   Badge,
   VStack,
-  HStack,
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
@@ -41,13 +40,20 @@ interface ClientGroup {
   name: string;
   clientIds: Client[];
   createdAt: string;
+  clients?: Client[]; // Add clients for the populated data
+}
+
+interface ClientGroupForForm {
+  _id?: string;
+  name: string;
+  clientIds: string[];
 }
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<ClientGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<ClientGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<ClientGroupForForm | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -74,7 +80,11 @@ export default function GroupsPage() {
   };
 
   const handleEdit = (group: ClientGroup) => {
-    setSelectedGroup(group);
+    // Transform for the form component which expects clientIds as string[]
+    setSelectedGroup({
+      ...group,
+      clientIds: group.clientIds.map(client => client._id), // Convert Client[] to string[]
+    } as any);
     onOpen();
   };
 

@@ -18,7 +18,6 @@ import {
   AlertIcon,
   useToast,
   Checkbox,
-  CheckboxGroup,
   Text,
   Box,
 } from '@chakra-ui/react';

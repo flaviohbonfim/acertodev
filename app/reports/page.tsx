@@ -67,7 +67,7 @@ interface ReportData {
 }
 
 export default function ReportsPage() {
-  const { data: session } = useSession();
+  const { data: _session } = useSession();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

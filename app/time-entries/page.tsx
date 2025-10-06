@@ -23,7 +23,6 @@ import {
   Text,
   Badge,
   VStack,
-  HStack,
 } from '@chakra-ui/react';
 import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
@@ -48,11 +47,23 @@ interface TimeEntry {
   createdAt: string;
 }
 
+interface TimeEntryForForm {
+  _id?: string;
+  date: string;
+  hours: number;
+  description: string;
+  activityTypeId: string;
+  target: {
+    type: 'client' | 'group';
+    id: string;
+  };
+}
+
 export default function TimeEntriesPage() {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedTimeEntry, setSelectedTimeEntry] = useState<TimeEntry | null>(null);
+  const [selectedTimeEntry, setSelectedTimeEntry] = useState<TimeEntryForForm | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -79,7 +90,15 @@ export default function TimeEntriesPage() {
   };
 
   const handleEdit = (timeEntry: TimeEntry) => {
-    setSelectedTimeEntry(timeEntry);
+    // Transform for the form component which expects activityTypeId as string
+    setSelectedTimeEntry({
+      _id: timeEntry._id,
+      date: timeEntry.date,
+      hours: timeEntry.hours,
+      description: timeEntry.description,
+      activityTypeId: timeEntry.activityTypeId._id, // Convert ActivityType object to string
+      target: timeEntry.target,
+    });
     onOpen();
   };
 

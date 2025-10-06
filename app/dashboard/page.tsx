@@ -5,8 +5,6 @@ import {
   Box,
   Heading,
   Text,
-  VStack,
-  HStack,
   Stat,
   StatLabel,
   StatNumber,

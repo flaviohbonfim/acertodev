@@ -23,17 +23,13 @@ import {
   DrawerCloseButton,
   useDisclosure,
   Link as ChakraLink,
-  Spacer,
 } from '@chakra-ui/react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   MoonIcon, 
-  SunIcon, 
-  HamburgerIcon, 
-  CloseIcon,
+  SunIcon,
+  HamburgerIcon,
   SettingsIcon,
   TimeIcon,
   ViewIcon,

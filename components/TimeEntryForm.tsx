@@ -22,8 +22,6 @@ import {
   RadioGroup,
   Radio,
   Stack,
-  Text,
-  Box,
 } from '@chakra-ui/react';
 
 interface Client {
@@ -89,7 +87,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
         date: new Date(timeEntry.date).toISOString().split('T')[0],
         hours: timeEntry.hours,
         description: timeEntry.description,
-        activityTypeId: typeof timeEntry.activityTypeId === 'string' ? timeEntry.activityTypeId : timeEntry.activityTypeId._id,
+        activityTypeId: timeEntry.activityTypeId,
         targetType: timeEntry.target.type,
         targetId: timeEntry.target.id,
       });
@@ -104,7 +102,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
         targetId: '',
       });
     }
-  }, [isOpen]);
+  }, [isOpen, timeEntry]);
 
   const fetchData = async () => {
     try {

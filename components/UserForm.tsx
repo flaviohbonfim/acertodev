@@ -53,8 +53,8 @@ export default function UserForm({ isOpen, onClose, user, onSuccess }: UserFormP
     try {
       const url = user ? `/api/users/${user._id}` : '/api/users';
       const method = user ? 'PUT' : 'POST';
-      
-      const body = { ...formData };
+
+      const body: any = { ...formData };
       if (user && !body.password) {
         delete body.password; // Não enviar senha vazia na edição
       }
