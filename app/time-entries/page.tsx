@@ -28,7 +28,7 @@ import {
   useBreakpointValue,
   Divider,
 } from '@chakra-ui/react';
-import { EditIcon, DeleteIcon, AddIcon } from '@chakra-ui/icons';
+import { EditIcon, DeleteIcon, AddIcon, CopyIcon } from '@chakra-ui/icons';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import TimeEntryForm from '@/components/TimeEntryForm';
@@ -70,6 +70,7 @@ export default function TimeEntriesPage() {
   const [error, setError] = useState('');
   const [selectedTimeEntry, setSelectedTimeEntry] = useState<TimeEntryForForm | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+  const [isCopyMode, setIsCopyMode] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
@@ -99,6 +100,7 @@ export default function TimeEntriesPage() {
 
   const handleEdit = (timeEntry: TimeEntry) => {
     // Transform for the form component which expects activityTypeId as string
+    setIsCopyMode(false);
     setSelectedTimeEntry({
       _id: timeEntry._id,
       date: timeEntry.date,
@@ -110,7 +112,21 @@ export default function TimeEntriesPage() {
     onOpen();
   };
 
+  const handleCopy = (timeEntry: TimeEntry) => {
+    setIsCopyMode(true);
+    setSelectedTimeEntry({
+      _id: timeEntry._id,
+      date: timeEntry.date,
+      hours: timeEntry.hours,
+      description: timeEntry.description,
+      activityTypeId: timeEntry.activityTypeId._id,
+      target: timeEntry.target,
+    });
+    onOpen();
+  };
+
   const handleCreate = () => {
+    setIsCopyMode(false);
     setSelectedTimeEntry(null);
     onOpen();
   };
@@ -251,16 +267,27 @@ export default function TimeEntriesPage() {
                             <Button
                               leftIcon={<EditIcon />}
                               size="sm"
+                              variant="ghost"
                               flex={1}
                               onClick={() => handleEdit(entry)}
                             >
                               Editar
                             </Button>
                             <Button
+                              leftIcon={<CopyIcon />}
+                              size="sm"
+                              variant="ghost"
+                              flex={1}
+                              onClick={() => handleCopy(entry)}
+                              colorScheme="brand"
+                            >
+                              Copiar
+                            </Button>
+                            <Button
                               leftIcon={<DeleteIcon />}
                               size="sm"
                               colorScheme="red"
-                              variant="outline"
+                              variant="ghost"
                               flex={1}
                               onClick={() => handleDeleteClick(entry._id)}
                             >
@@ -323,8 +350,16 @@ export default function TimeEntriesPage() {
                                 aria-label="Editar lançamento"
                                 icon={<EditIcon />}
                                 size="sm"
-                                mr={2}
+                                mr={1}
                                 onClick={() => handleEdit(entry)}
+                              />
+                              <IconButton
+                                aria-label="Copiar lançamento"
+                                icon={<CopyIcon />}
+                                size="sm"
+                                mr={1}
+                                colorScheme="brand"
+                                onClick={() => handleCopy(entry)}
                               />
                               <IconButton
                                 aria-label="Deletar lançamento"
@@ -350,6 +385,7 @@ export default function TimeEntriesPage() {
             onClose={onClose}
             timeEntry={selectedTimeEntry}
             onSuccess={handleSuccess}
+            isCopy={isCopyMode}
           />
 
           <ConfirmDialog

@@ -24,7 +24,7 @@ export async function PUT(
 
     await connectDB();
 
-    const group = await ClientGroup.findOne({ _id: params.id, ownerId: session.user.id });
+    const group = await ClientGroup.findById(params.id);
     if (!group) {
       return NextResponse.json({ error: 'Grupo não encontrado' }, { status: 404 });
     }
@@ -58,7 +58,7 @@ export async function DELETE(
 
     await connectDB();
 
-    const group = await ClientGroup.findOne({ _id: params.id, ownerId: session.user.id });
+    const group = await ClientGroup.findById(params.id);
     if (!group) {
       return NextResponse.json({ error: 'Grupo não encontrado' }, { status: 404 });
     }

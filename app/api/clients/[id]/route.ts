@@ -24,7 +24,7 @@ export async function PUT(
 
     await connectDB();
 
-    const client = await Client.findOne({ _id: params.id, ownerId: session.user.id });
+    const client = await Client.findById(params.id);
     if (!client) {
       return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 });
     }
@@ -58,7 +58,7 @@ export async function DELETE(
 
     await connectDB();
 
-    const client = await Client.findOne({ _id: params.id, ownerId: session.user.id });
+    const client = await Client.findById(params.id);
     if (!client) {
       return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 });
     }

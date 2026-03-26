@@ -22,7 +22,16 @@ import {
   RadioGroup,
   Radio,
   Stack,
+  HStack,
+  Tag,
+  TagLabel,
+  TagCloseButton,
+  Wrap,
+  WrapItem,
+  Tooltip,
 } from '@chakra-ui/react';
+import { CalendarIcon } from '@chakra-ui/icons';
+import { format, startOfMonth, endOfMonth, isWeekend, addDays } from 'date-fns';
 
 interface Client {
   _id: string;
@@ -58,9 +67,10 @@ interface TimeEntryFormProps {
   onClose: () => void;
   timeEntry?: TimeEntry | null;
   onSuccess: () => void;
+  isCopy?: boolean;
 }
 
-export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }: TimeEntryFormProps) {
+export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess, isCopy = false }: TimeEntryFormProps) {
   const [formData, setFormData] = useState({
     date: timeEntry?.date || new Date().toISOString().split('T')[0],
     hours: timeEntry?.hours || 0,
@@ -69,6 +79,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
     targetType: timeEntry?.target.type || 'client',
     targetId: timeEntry?.target.id || '',
   });
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [groups, setGroups] = useState<ClientGroup[]>([]);
   const [activityTypes, setActivityTypes] = useState<ActivityType[]>([]);
@@ -80,7 +91,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
     if (isOpen) {
       fetchData();
       if (timeEntry) {
-        // Garante que o formulário seja preenchido ao editar
+        // Garante que o formulário seja preenchido ao editar ou copiar
         setFormData({
           date: new Date(timeEntry.date).toISOString().split('T')[0],
           hours: timeEntry.hours,
@@ -89,12 +100,16 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
           targetType: timeEntry.target.type,
           targetId: timeEntry.target.id,
         });
+        
+        if (isCopy) {
+          setSelectedDates([new Date(timeEntry.date).toISOString().split('T')[0]]);
+        }
       } else {
         // Reseta para o estado inicial ao criar um novo
         resetFormState();
       }
     }
-  }, [isOpen, timeEntry]);
+  }, [isOpen, timeEntry, isCopy]);
 
   const fetchData = async () => {
     try {
@@ -124,11 +139,10 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
     setError('');
 
     try {
-      const url = timeEntry ? `/api/time-entries/${timeEntry._id}` : '/api/time-entries';
-      const method = timeEntry ? 'PUT' : 'POST';
+      const url = timeEntry && !isCopy ? `/api/time-entries/${timeEntry._id}` : '/api/time-entries';
+      const method = timeEntry && !isCopy ? 'PUT' : 'POST';
 
-      const body = {
-        date: formData.date,
+      const body: any = {
         hours: formData.hours,
         description: formData.description,
         activityTypeId: formData.activityTypeId,
@@ -137,6 +151,15 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
           id: formData.targetId,
         },
       };
+
+      if (isCopy) {
+        if (selectedDates.length === 0) {
+          throw new Error('Selecione pelo menos uma data para copiar');
+        }
+        body.dates = selectedDates;
+      } else {
+        body.date = formData.date;
+      }
 
       const response = await fetch(url, {
         method,
@@ -152,7 +175,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
       }
 
       toast({
-        title: timeEntry ? 'Lançamento atualizado!' : 'Lançamento criado!',
+        title: isCopy ? 'Lançamentos copiados!' : (timeEntry ? 'Lançamento atualizado!' : 'Lançamento criado!'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -168,6 +191,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
         targetType: 'client',
         targetId: '',
       });
+      setSelectedDates([]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -184,7 +208,33 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
       targetType: 'client',
       targetId: '',
     });
+    setSelectedDates([]);
   }
+
+  const toggleDate = (dateStr: string) => {
+    if (selectedDates.includes(dateStr)) {
+      setSelectedDates(selectedDates.filter(d => d !== dateStr));
+    } else {
+      setSelectedDates([...selectedDates, dateStr].sort());
+    }
+  };
+
+  const selectBusinessDaysOfMonth = () => {
+    const today = new Date();
+    const start = startOfMonth(today);
+    const end = endOfMonth(today);
+    const businessDays: string[] = [];
+    
+    let current = start;
+    while (current <= end) {
+      if (!isWeekend(current)) {
+        businessDays.push(format(current, 'yyyy-MM-dd'));
+      }
+      current = addDays(current, 1);
+    }
+    
+    setSelectedDates(businessDays);
+  };
 
   const handleClose = () => {
     resetFormState();
@@ -198,7 +248,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
       <ModalContent m={{ base: 0, md: 4 }}>
         <form onSubmit={handleSubmit}>
           <ModalHeader>
-            {timeEntry ? 'Editar Lançamento' : 'Novo Lançamento'}
+            {isCopy ? 'Copiar Lançamento' : (timeEntry ? 'Editar Lançamento' : 'Novo Lançamento')}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -210,14 +260,68 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
                 </Alert>
               )}
 
-              <FormControl isRequired>
-                <FormLabel>Data</FormLabel>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                />
-              </FormControl>
+              {!isCopy ? (
+                <FormControl isRequired>
+                  <FormLabel>Data</FormLabel>
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  />
+                </FormControl>
+              ) : (
+                <FormControl isRequired>
+                  <FormLabel>Datas para Cópia</FormLabel>
+                  <VStack align="stretch" spacing={3}>
+                    <HStack>
+                      <Input
+                        type="date"
+                        isRequired={false}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            toggleDate(e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <Tooltip label="Selecionar dias úteis do mês atual">
+                        <Button
+                          leftIcon={<CalendarIcon />}
+                          onClick={selectBusinessDaysOfMonth}
+                          size="md"
+                          colorScheme="blue"
+                          variant="outline"
+                          px={6}
+                        >
+                          Dias Úteis
+                        </Button>
+                      </Tooltip>
+                    </HStack>
+                    
+                    <Wrap spacing={2}>
+                      {selectedDates.map((date) => (
+                        <WrapItem key={date}>
+                          <Tag
+                            size="md"
+                            borderRadius="full"
+                            variant="solid"
+                            colorScheme="brand"
+                          >
+                            <TagLabel>{format(new Date(`${date}T12:00:00`), 'dd/MM/yyyy')}</TagLabel>
+                            <TagCloseButton onClick={() => toggleDate(date)} />
+                          </Tag>
+                        </WrapItem>
+                      ))}
+                    </Wrap>
+                    
+                    {selectedDates.length > 0 && (
+                      <Button size="xs" variant="ghost" onClick={() => setSelectedDates([])} colorScheme="red" alignSelf="flex-start">
+                        Limpar todas as datas
+                      </Button>
+                    )}
+                  </VStack>
+                </FormControl>
+              )}
 
               <FormControl isRequired>
                 <FormLabel>Horas</FormLabel>
@@ -304,7 +408,7 @@ export default function TimeEntryForm({ isOpen, onClose, timeEntry, onSuccess }:
               isLoading={isLoading}
               loadingText="Salvando..."
             >
-              {timeEntry ? 'Atualizar' : 'Criar'}
+              {isCopy ? 'Copiar para todas as datas' : (timeEntry ? 'Atualizar' : 'Criar')}
             </Button>
           </ModalFooter>
         </form>
