@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import TimeEntry from '@/models/TimeEntry';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -12,15 +12,30 @@ export async function GET() {
       return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)));
+    const skip = (page - 1) * limit;
+
     await connectDB();
     // Admins podem ver todos os lançamentos.
     const filter = session.user.role === 'admin' ? {} : { ownerId: session.user.id };
 
-    const timeEntries = await TimeEntry.find(filter)
-      .populate('activityTypeId') // Popula para obter o nome da atividade
-      .sort({ date: -1 });
-    
-    return NextResponse.json(timeEntries);
+    const [timeEntries, total] = await Promise.all([
+      TimeEntry.find(filter)
+        .populate('activityTypeId')
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit),
+      TimeEntry.countDocuments(filter),
+    ]);
+
+    return NextResponse.json({
+      data: timeEntries,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }

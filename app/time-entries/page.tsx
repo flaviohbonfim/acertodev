@@ -33,6 +33,7 @@ import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import TimeEntryForm from '@/components/TimeEntryForm';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import PaginationControls from '@/components/PaginationControls';
 
 interface ActivityType {
   _id: string;
@@ -68,6 +69,9 @@ export default function TimeEntriesPage() {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PAGE_SIZE = 20;
   const [selectedTimeEntry, setSelectedTimeEntry] = useState<TimeEntryForForm | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const [isCopyMode, setIsCopyMode] = useState(false);
@@ -80,17 +84,19 @@ export default function TimeEntriesPage() {
   const isMobile = useBreakpointValue({ base: true, md: false });
 
   useEffect(() => {
-    fetchTimeEntries();
-  }, []);
+    fetchTimeEntries(currentPage);
+  }, [currentPage]);
 
-  const fetchTimeEntries = async () => {
+  const fetchTimeEntries = async (page = 1) => {
+    setLoading(true);
     try {
-      const response = await fetch('/api/time-entries');
+      const response = await fetch(`/api/time-entries?page=${page}&limit=${PAGE_SIZE}`);
       if (!response.ok) {
         throw new Error('Erro ao carregar lançamentos');
       }
-      const data = await response.json();
+      const { data, totalPages: tp } = await response.json();
       setTimeEntries(data);
+      setTotalPages(tp);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -169,8 +175,12 @@ export default function TimeEntriesPage() {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const handleSuccess = () => {
-    fetchTimeEntries();
+    fetchTimeEntries(currentPage);
   };
 
   if (loading) {
@@ -298,6 +308,12 @@ export default function TimeEntriesPage() {
                       </CardBody>
                     </Card>
                   ))}
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    isLoading={loading}
+                  />
                 </VStack>
               ) : (
                 // Desktop: Table
@@ -374,6 +390,12 @@ export default function TimeEntriesPage() {
                         ))}
                       </Tbody>
                     </Table>
+                    <PaginationControls
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                      isLoading={loading}
+                    />
                   </CardBody>
                 </Card>
               )}
