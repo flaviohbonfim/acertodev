@@ -94,7 +94,7 @@ const AuthenticatedLayout = ({ children }: LayoutProps) => {
             {navigationItems.map((item) => (<ChakraLink key={item.href} as={Link} href={item.href} _hover={{ textDecoration: 'none' }}><Button variant="ghost" leftIcon={<item.icon />} justifyContent="flex-start" w="full" size="sm">{item.label}</Button></ChakraLink>))}
           </VStack>
         </Box>
-        <Box flex="1" p={6}>{children}</Box>
+        <Box flex="1" p={{ base: 3, md: 6 }} minW={0} overflow="hidden">{children}</Box>
       </Flex>
       <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
         <DrawerOverlay />

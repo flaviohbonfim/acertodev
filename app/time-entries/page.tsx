@@ -198,7 +198,7 @@ export default function TimeEntriesPage() {
   return (
     <Layout>
       <ProtectedRoute requiredRole="admin">
-        <Box>
+        <Box maxW="100%" overflowX="hidden">
           <Stack
             direction={{ base: 'column', sm: 'row' }}
             justifyContent="space-between"
@@ -236,7 +236,7 @@ export default function TimeEntriesPage() {
                 // Mobile: Cards
                 <VStack spacing={4}>
                   {timeEntries.map((entry) => (
-                    <Card key={entry._id} bg={cardBg} border="1px" borderColor={borderColor} w="full">
+                    <Card key={entry._id} bg={cardBg} border="1px" borderColor={borderColor} w="full" overflow="hidden">
                       <CardBody>
                         <VStack align="stretch" spacing={3}>
                           <HStack justifyContent="space-between">
@@ -273,36 +273,30 @@ export default function TimeEntriesPage() {
                             </VStack>
                           </HStack>
                           
-                          <HStack spacing={2} pt={2}>
-                            <Button
-                              leftIcon={<EditIcon />}
+                          <HStack spacing={2} pt={2} justify="flex-end">
+                            <IconButton
+                              aria-label="Editar lançamento"
+                              icon={<EditIcon />}
                               size="sm"
                               variant="ghost"
-                              flex={1}
                               onClick={() => handleEdit(entry)}
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              leftIcon={<CopyIcon />}
+                            />
+                            <IconButton
+                              aria-label="Copiar lançamento"
+                              icon={<CopyIcon />}
                               size="sm"
                               variant="ghost"
-                              flex={1}
-                              onClick={() => handleCopy(entry)}
                               colorScheme="brand"
-                            >
-                              Copiar
-                            </Button>
-                            <Button
-                              leftIcon={<DeleteIcon />}
+                              onClick={() => handleCopy(entry)}
+                            />
+                            <IconButton
+                              aria-label="Deletar lançamento"
+                              icon={<DeleteIcon />}
                               size="sm"
                               colorScheme="red"
                               variant="ghost"
-                              flex={1}
                               onClick={() => handleDeleteClick(entry._id)}
-                            >
-                              Deletar
-                            </Button>
+                            />
                           </HStack>
                         </VStack>
                       </CardBody>
