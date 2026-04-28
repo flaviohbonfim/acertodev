@@ -1,6 +1,6 @@
 'use client';
 
-import { HStack, Button, Text, IconButton, useColorModeValue } from '@chakra-ui/react';
+import { HStack, Text, IconButton, useColorModeValue } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 
 interface PaginationControlsProps {
