@@ -30,11 +30,12 @@ source "$DEPLOY_ENV"
 
 LATEST_JSON=$(curl -fsSL \
   -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/${GH_REPO}/releases/latest") || {
+  "https://api.github.com/repos/${GH_REPO}/releases?per_page=1") || {
   log "ERROR: Falha ao consultar a API do GitHub."
   exit 1
 }
 
+# Extrai o primeiro resultado (release mais recente, incluindo pre-releases)
 LATEST_TAG=$(echo "$LATEST_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
 ASSET_URL=$(echo "$LATEST_JSON" | grep '"browser_download_url"' | head -1 | sed 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')
 

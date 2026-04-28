@@ -32,3 +32,6 @@ Thumbs.db
 *.cert
 *.key
 *.pem
+
+# Configuração local de deploy (contém IP do servidor)
+.deploy.conf
