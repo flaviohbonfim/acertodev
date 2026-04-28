@@ -166,8 +166,8 @@ export default function ClientGroupForm({ isOpen, onClose, group, onSuccess }: C
                 />
               </FormControl>
 
-              <FormControl>
-                <FormLabel isRequired>Clientes</FormLabel>
+              <FormControl isRequired>
+                <FormLabel>Clientes</FormLabel>
                 <Box maxH="200px" overflowY="auto" border="1px" borderColor="gray.200" borderRadius="md" p={3}>
                   {clients.length === 0 ? (
                     <Text color="gray.500">Nenhum cliente disponível</Text>
