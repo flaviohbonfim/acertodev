@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+
+      - name: Create release tag
+        id: tag
+        run: |
+          TAG="v$(date -u +%Y%m%d%H%M%S)"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Package build artifact
+        run: |
+          tar -czf acertodev-${{ steps.tag.outputs.tag }}.tar.gz \
+            .next \
+            package.json \
+            package-lock.json \
+            next.config.js
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
+          files: acertodev-${{ steps.tag.outputs.tag }}.tar.gz
+          generate_release_notes: true
